@@ -358,7 +358,7 @@
     <div class="hi"><span class="hl">SUPER TERRY</span><span class="hv" id="sc">000000</span></div>
     <div class="hi"><span class="hl"><span class="coin-spin"></span>×</span><span class="hv y" id="co">00</span></div>
     <div class="hi"><span class="hl">🥒×</span><span class="hv y" id="pk">00</span></div>
-    <div class="hi"><span class="hl">WORLD</span><span class="hv">TERRY-1</span></div>
+    <div class="hi"><span class="hl">WORLD</span><span class="hv" id="hud-world">TERRY-1</span></div>
     <div class="hi"><span class="hl">TIME</span><span class="hv" id="ti">400</span></div>
   </div>
 
@@ -693,6 +693,29 @@ document.getElementById('rb').addEventListener('click',()=>{
 /* ── INPUT ──────────────────────────────────────────── */
 document.addEventListener('keydown',start);
 ss.addEventListener('click',start);
+
+/* ── R→L GLITCH (TERRY→TELLY, MARIO→MALIO…) ─────────
+   Ogni tot secondi casuali alcune R visibili diventano
+   L per un breve momento, poi tornano.                */
+(function rlLoop() {
+  setTimeout(() => {
+    [
+      ...document.querySelectorAll('.lr,.lr2,.ar'), // lettere R singole
+      ...document.querySelectorAll('.super-txt'),   // SUPER
+      document.getElementById('hud-world'),         // TERRY-1
+      document.getElementById('rb'),                // RIVIVI IL LIVELLO
+      document.getElementById('btn-all-dl'),        // SCARICA...RICORDO
+      document.querySelector('.clear-txt'),         // CORSO TERRY-1...
+    ].filter(Boolean).forEach(el => {
+      if (Math.random() > 0.35) return;             // 35% di probabilità per elemento
+      const orig = el.textContent;
+      if (!orig.includes('R')) return;
+      el.textContent = orig.replace(/R/g, 'L');
+      setTimeout(() => { el.textContent = orig; }, 200 + Math.random() * 700);
+    });
+    rlLoop();
+  }, 1200 + Math.random() * 2800);
+})();
 
 /* ── BOB ANIMATION for decorative blocks ────────────── */
 /* (defined globally so CSS @keyframes can reference it) */
