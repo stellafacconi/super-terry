@@ -88,8 +88,8 @@
       transition:transform .05s;
     }
     .dlblock:active{ transform:translateY(calc(var(--u)*-2)) scaleX(.95); }
-    .dlblock .icon{ font-size:calc(var(--u)*5); line-height:1; }
-    .dlblock .lbl{ font-size:calc(var(--u)*1.4); color:var(--mort); letter-spacing:0; text-align:center; line-height:1.2; }
+    .dlblock .icon{ font-size:calc(var(--u)*5); line-height:1; color:var(--mort); }
+    .dlblock{ animation:bob 2s ease-in-out infinite; }
     .dlblock.hit{ animation:blockhit .25s ease-out; }
     @keyframes blockhit{ 0%{transform:translateY(0)} 30%{transform:translateY(calc(var(--u)*-3))} 100%{transform:translateY(0)} }
 
@@ -391,23 +391,11 @@
     <span class="skystar deco" style="top:5%;right:30%;animation-delay:.7s">★</span>
     <span class="skystar deco" style="top:15%;left:70%;animation-delay:1.8s">★</span>
 
-    <!-- ── 3 DOWNLOAD BLOCKS (centered above video) ── -->
+    <!-- ── 3 DOWNLOAD BLOCKS (mystery ? blocks) ── -->
     <div class="deco" id="dl-row" style="top:8%;left:50%;transform:translateX(-50%);display:flex;gap:calc(var(--u)*3);z-index:6;">
-      <!-- Block 1: Foto 1 -->
-      <div class="dlblock" id="dl1" title="Scarica foto 1">
-        <span class="icon">📸</span>
-        <span class="lbl">FOTO<br>1</span>
-      </div>
-      <!-- Block 2: Foto 2 -->
-      <div class="dlblock" id="dl2" title="Scarica foto 2">
-        <span class="icon">📸</span>
-        <span class="lbl">FOTO<br>2</span>
-      </div>
-      <!-- Block 3: Video -->
-      <div class="dlblock" id="dl3" title="Scarica video">
-        <span class="icon">🎬</span>
-        <span class="lbl">VIDEO</span>
-      </div>
+      <div class="dlblock" id="dl1"><span class="icon">?</span></div>
+      <div class="dlblock" id="dl2"><span class="icon">?</span></div>
+      <div class="dlblock" id="dl3"><span class="icon">?</span></div>
     </div>
 
     <!-- Decorative ? blocks row — left -->
