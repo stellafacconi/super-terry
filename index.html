@@ -550,47 +550,55 @@ function spawnPop(){
   pa.appendChild(d); setTimeout(()=>d.remove(),900);
 }
 
+/* ── PRE-CARICA I FILE IN BACKGROUND ────────────────
+   iOS richiede che navigator.share() venga chiamato
+   SINCRONO nel click handler — qualsiasi await prima
+   di esso fa perdere il contesto gesto e iOS lo blocca.
+   Quindi fetchiamo i blob subito al caricamento pagina,
+   così al tap sono già pronti in memoria.             */
+const preloaded = {};
+(async () => {
+  for (const [id, {file, name}] of Object.entries(DOWNLOADS)) {
+    try {
+      const r = await fetch(file);
+      const blob = await r.blob();
+      preloaded[id] = new File([blob], name, { type: blob.type });
+    } catch(e) {}
+  }
+})();
+
 /* ── DOWNLOAD BLOCKS ────────────────────────────────── */
-Object.entries(DOWNLOADS).forEach(([id,{file,name}])=>{
+Object.entries(DOWNLOADS).forEach(([id, {file, name}]) => {
   const btn = document.getElementById(id);
-  if(!btn) return;
-  btn.addEventListener('click',()=>{
+  if (!btn) return;
+  btn.addEventListener('click', () => {
     /* bump + sound */
-    btn.classList.remove('hit');
-    void btn.offsetWidth;
-    btn.classList.add('hit');
-    dlSnd(); score+=200; elSc.textContent=pad(score,6);
+    btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit');
+    dlSnd(); score += 200; elSc.textContent = pad(score, 6);
 
-    /* download flash */
-    const f=document.createElement('div');f.className='dlflash';
-    f.textContent='⬇ DOWNLOAD!';
-    f.style.left=btn.getBoundingClientRect().left+'px';
-    f.style.top=(btn.getBoundingClientRect().top-20)+'px';
-    f.style.position='fixed';
-    document.body.appendChild(f); setTimeout(()=>f.remove(),1200);
+    /* flash */
+    const fl = document.createElement('div'); fl.className = 'dlflash';
+    fl.textContent = '⬇ DOWNLOAD!';
+    fl.style.cssText = `position:fixed;left:${btn.getBoundingClientRect().left}px;top:${btn.getBoundingClientRect().top - 20}px`;
+    document.body.appendChild(fl); setTimeout(() => fl.remove(), 1200);
 
-    /* download cross-platform:
-       1. Web Share API con file (iOS 15+, Android Chrome) → apre il foglio di condivisione nativo
-       2. blob <a download> (desktop Chrome/Firefox)
-       3. fallback: apri in nuova tab */
-    fetch(file)
-      .then(r => r.blob())
-      .then(async blob => {
-        const shareFile = new File([blob], name, { type: blob.type });
-        if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
-          try {
-            await navigator.share({ files: [shareFile], title: 'Super Terry™' });
-            return;
-          } catch(e) { /* utente ha annullato o share fallita, continua */ }
-        }
-        // fallback blob download
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = name;
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-      })
-      .catch(() => window.open(file, '_blank'));
+    /* ── share/download sincrono nel click handler ──
+       1. Web Share con file  (iOS 15+ / Android Chrome)
+       2. Web Share con URL   fallback share
+       3. blob <a download>   desktop                 */
+    const sf = preloaded[id];
+    if (sf && navigator.canShare?.({ files: [sf] })) {
+      navigator.share({ files: [sf], title: 'Super Terry™' }).catch(() => {});
+    } else if (navigator.share) {
+      navigator.share({ url: new URL(file, location.href).href, title: 'Super Terry™' }).catch(() => {});
+    } else if (sf) {
+      const url = URL.createObjectURL(sf);
+      const a = document.createElement('a'); a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } else {
+      window.open(file, '_blank');
+    }
   });
 });
 
