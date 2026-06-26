@@ -46,10 +46,10 @@
     /* ── CLOUDS ──────────────────────────── */
     .cloud{ position:absolute; image-rendering:pixelated; }
     @keyframes drift{ from{transform:translateX(110vw)} to{transform:translateX(-260px)} }
-    .cl1{ top:6%;  animation:drift 30s linear infinite; }
-    .cl2{ top:22%; animation:drift 46s linear 9s infinite; }
-    .cl3{ top:3%;  animation:drift 22s linear 3s infinite; }
-    .cl4{ top:35%; animation:drift 38s linear 18s infinite; }
+    .cl1{ top:6%;  animation:drift 28s linear -14s infinite; }
+    .cl2{ top:22%; animation:drift 42s linear -6s  infinite; }
+    .cl3{ top:3%;  animation:drift 20s linear -16s infinite; }
+    .cl4{ top:35%; animation:drift 36s linear -22s infinite; }
 
     /* ── GROUND TILE ─────────────────────── */
     .ground{
@@ -304,6 +304,7 @@
       padding:12px 20px; cursor:pointer; letter-spacing:2px; z-index:1;
     }
     .btn-replay:active{ transform:scale(.93); }
+    .btn-dl-all{ background:var(--grn); color:#fff; border-color:#000; }
     .fw{ position:absolute; font-size:32px; pointer-events:none; z-index:2; animation:pop 1s ease-out forwards; }
     @keyframes pop{ 0%{transform:scale(.2);opacity:1} 100%{transform:scale(3);opacity:0} }
   </style>
@@ -474,6 +475,7 @@
     <div><span class="tl">PUNTEGGIO  </span><span class="tv" id="efin">000000</span></div>
   </div>
   <p class="end-msg" id="em"></p>
+  <button class="btn-replay btn-dl-all" id="btn-all-dl">⬇ SCARICA LE FOTO RICORDO</button>
   <button class="btn-replay" id="rb">▶ RIVIVI IL LIVELLO</button>
 </div>
 
@@ -656,6 +658,29 @@ function fireworks(){
   for(let i=0;i<6;i++) setTimeout(fire,i*350);
   setInterval(()=>{ fire(); setTimeout(fire,300); },2400);
 }
+
+/* ── SCARICA TUTTO ───────────────────────────────────── */
+document.getElementById('btn-all-dl').addEventListener('click', () => {
+  const files = Object.values(preloaded);
+  if (files.length && navigator.canShare?.({ files })) {
+    /* iOS: share sheet con tutti i file insieme */
+    navigator.share({ files, title: 'Super Terry™ — Foto Ricordo' }).catch(() => {});
+  } else if (navigator.share) {
+    /* fallback: condividi URL della pagina */
+    navigator.share({ url: location.href, title: 'Super Terry™ — Foto Ricordo' }).catch(() => {});
+  } else {
+    /* desktop: scarica uno per uno con 600ms di gap */
+    Object.values(DOWNLOADS).forEach(({ name }, i) => {
+      setTimeout(() => {
+        const sf = files[i]; if (!sf) return;
+        const url = URL.createObjectURL(sf);
+        const a = document.createElement('a'); a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }, i * 600);
+    });
+  }
+});
 
 /* ── REPLAY ─────────────────────────────────────────── */
 document.getElementById('rb').addEventListener('click',()=>{
