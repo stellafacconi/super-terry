@@ -569,17 +569,28 @@ Object.entries(DOWNLOADS).forEach(([id,{file,name}])=>{
     f.style.position='fixed';
     document.body.appendChild(f); setTimeout(()=>f.remove(),1200);
 
-    /* trigger download — fetch+blob funziona su iOS Safari */
+    /* download cross-platform:
+       1. Web Share API con file (iOS 15+, Android Chrome) → apre il foglio di condivisione nativo
+       2. blob <a download> (desktop Chrome/Firefox)
+       3. fallback: apri in nuova tab */
     fetch(file)
-      .then(r=>r.blob())
-      .then(blob=>{
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url; a.download=name;
+      .then(r => r.blob())
+      .then(async blob => {
+        const shareFile = new File([blob], name, { type: blob.type });
+        if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+          try {
+            await navigator.share({ files: [shareFile], title: 'Super Terry™' });
+            return;
+          } catch(e) { /* utente ha annullato o share fallita, continua */ }
+        }
+        // fallback blob download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = name;
         document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),5000);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
       })
-      .catch(()=>window.open(file,'_blank')); // fallback
+      .catch(() => window.open(file, '_blank'));
   });
 });
 
